@@ -1,4 +1,5 @@
 import json
+from urllib.parse import parse_qs
 from nltk import wordpunct_tokenize
 from nltk.corpus import stopwords
 
@@ -34,8 +35,14 @@ def load_bad_words(language):
 
 def handler(request, response):
     try:
-        body = json.loads(request.body)
-        text = body.get('text', '')
+        # Handle GET with query ?text=
+        if request.method == "GET":
+            query = parse_qs(request.query_string)
+            text = query.get('text', [''])[0]
+        else:
+            # Or POST with JSON body
+            body = json.loads(request.body)
+            text = body.get('text', '')
 
         if not text:
             return response.status(400).json({ "error": "No text provided." })
